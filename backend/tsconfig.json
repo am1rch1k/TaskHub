@@ -1,20 +1,14 @@
 {
   "compilerOptions": {
-    // Куда класть скомпилированный JS, откуда брать TS
-    "rootDir": "./src",
-    "outDir": "./dist",
-
-    // Окружение: Node + CommonJS
     "target": "ES2020",
     "module": "CommonJS",
     "moduleResolution": "node",
+    "rootDir": "./src",
+    "outDir": "./dist",
 
-    // Типы и модули
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "types": ["node"],
 
-    // Строгий режим
     "strict": true,
     "skipLibCheck": true
   },
