@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { connectDB } from "./config/db";
@@ -9,23 +9,13 @@ dotenv.config();
 
 const app = express();
 
-// CORS: разрешаем фронт на 5173 порту
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    credentials: false,
-  })
-);
-
-// умеем принимать JSON
+app.use(cors());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
-
 app.use("/api/tasks", taskRoutes);
 
-// тестовый роут
-app.get("/api/ping", (_req, res) => {
+app.get("/api/ping", (_req: Request, res: Response) => {
   res.json({ message: "pong from backend" });
 });
 
@@ -35,7 +25,7 @@ async function start() {
   await connectDB();
 
   app.listen(PORT, () => {
-    console.log(`🚀 Backend server started on port ${PORT}`);
+    console.log(`Backend server started on port ${PORT}`);
   });
 }
 
