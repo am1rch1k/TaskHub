@@ -1,43 +1,33 @@
-import express from "express";
-import type { Request, Response } from "express";
+import { Router, type Request, type Response } from "express";
 import { User } from "../models/User";
 
-const router = express.Router();
+const router = Router();
 
 // POST /api/auth/register
 router.post("/register", async (req: Request, res: Response) => {
+  const { username, password, name } = req.body ?? {};
+
+  if (!username || !password) {
+    res
+      .status(400)
+      .json({ success: false, message: "Логин и пароль обязательны" });
+    return;
+  }
+
   try {
-    const { username, password, name } = req.body as {
-      username?: string;
-      password?: string;
-      name?: string;
-    };
-
-    if (!username || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Логин и пароль обязательны",
-      });
-    }
-
-    // Проверяем, что логин уникален
     const existing = await User.findOne({ username }).exec();
     if (existing) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: "Пользователь с таким логином уже существует",
       });
+      return;
     }
 
-    const user = new User({
-      username,
-      password, // без хэша — учебный проект
-      name,
-    });
-
+    const user = new User({ username, password, name });
     await user.save();
 
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
       user: {
         id: user._id.toString(),
@@ -46,8 +36,8 @@ router.post("/register", async (req: Request, res: Response) => {
       },
     });
   } catch (err) {
-    console.error("Ошибка при регистрации:", err);
-    return res.status(500).json({
+    console.error("Ошибка регистрации:", err);
+    res.status(500).json({
       success: false,
       message: "Внутренняя ошибка сервера при регистрации",
     });
@@ -56,29 +46,25 @@ router.post("/register", async (req: Request, res: Response) => {
 
 // POST /api/auth/login
 router.post("/login", async (req: Request, res: Response) => {
+  const { username, password } = req.body ?? {};
+
+  if (!username || !password) {
+    res
+      .status(400)
+      .json({ success: false, message: "Логин и пароль обязательны" });
+    return;
+  }
+
   try {
-    const { username, password } = req.body as {
-      username?: string;
-      password?: string;
-    };
-
-    if (!username || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Логин и пароль обязательны",
-      });
-    }
-
     const user = await User.findOne({ username }).exec();
-
     if (!user || user.password !== password) {
-      return res.status(401).json({
-        success: false,
-        message: "Неверный логин или пароль",
-      });
+      res
+        .status(401)
+        .json({ success: false, message: "Неверный логин или пароль" });
+      return;
     }
 
-    return res.json({
+    res.status(200).json({
       success: true,
       user: {
         id: user._id.toString(),
@@ -87,8 +73,8 @@ router.post("/login", async (req: Request, res: Response) => {
       },
     });
   } catch (err) {
-    console.error("Ошибка при входе:", err);
-    return res.status(500).json({
+    console.error("Ошибка входа:", err);
+    res.status(500).json({
       success: false,
       message: "Внутренняя ошибка сервера при входе",
     });

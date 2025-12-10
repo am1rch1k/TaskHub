@@ -1,14 +1,20 @@
 import mongoose from "mongoose";
+import dotenv from "dotenv";
 
-const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/taskhub";
+dotenv.config();
 
-export async function connectDB() {
-  try {
-    await mongoose.connect(MONGO_URI);
-    console.log("✅ MongoDB connected");
-  } catch (err) {
-    console.error("❌ MongoDB connection error:", err);
-    // если не подключились к БД — дальше сервер поднимать смысла нет
-    process.exit(1);
+const MONGO_URI: string = process.env.MONGO_URI ?? "";
+
+if (!MONGO_URI) {
+  throw new Error("MONGO_URI is not defined");
+}
+
+export async function connectDB(): Promise<void> {
+  // 0 - disconnected, 1 - connected, 2 - connecting, 3 - disconnecting
+  if (mongoose.connection.readyState >= 1) {
+    return;
   }
+
+  await mongoose.connect(MONGO_URI);
+  console.log("✅ MongoDB connected");
 }
