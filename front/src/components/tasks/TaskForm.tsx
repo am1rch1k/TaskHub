@@ -72,7 +72,7 @@ export function TaskForm({
         <Label htmlFor="title">Название задачи</Label>
         <Input
           id="title"
-          placeholder="Например: Сделать главу 34 курсовой"
+          placeholder="Получить максимальный балл по курсовой"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required

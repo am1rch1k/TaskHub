@@ -1,21 +1,24 @@
-import { Schema, model, type Document, type Types } from "mongoose";
+import { Schema, model } from "mongoose";
 
 export type TaskPriority = "low" | "medium" | "high";
 
-export interface ITask extends Document {
-  userId: Types.ObjectId;
+// Это наш интерфейс для кода / фронта, НЕ mongoose Document
+export interface ITask {
+  _id: string; // строковый id, удобно для фронта
+  userId: string;
   title: string;
   description?: string;
-  dueDate?: Date;
+  dueDate?: Date | null;
   priority: TaskPriority;
   color?: string;
   isDone: boolean;
-  remindAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+  remindAt?: Date | null;
 }
 
-const taskSchema = new Schema<ITask>(
+// Mongoose-схема – без привязки к ITask, пусть TS не мешает
+const taskSchema = new Schema(
   {
     userId: {
       type: Schema.Types.ObjectId,
@@ -48,6 +51,7 @@ const taskSchema = new Schema<ITask>(
     },
     remindAt: {
       type: Date,
+      default: null,
     },
   },
   {
@@ -55,4 +59,5 @@ const taskSchema = new Schema<ITask>(
   }
 );
 
-export const Task = model<ITask>("Task", taskSchema);
+// Модель – тоже без дженериков, тип будем контролировать сами
+export const Task = model("Task", taskSchema);

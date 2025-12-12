@@ -162,3 +162,24 @@ h1 {
     @apply bg-background text-foreground;
   }
 }
+
+/* Кастомизация react-big-calendar */
+.task-calendar .rbc-calendar {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  font-size: 0.875rem;
+}
+
+.task-calendar .rbc-toolbar {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.task-calendar .rbc-header {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.task-calendar .rbc-event {
+  font-size: 0.75rem;
+}

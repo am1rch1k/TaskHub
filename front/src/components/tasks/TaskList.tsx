@@ -1,4 +1,6 @@
 import type { Task, TaskPriority } from "../../types/task";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
 
 interface TaskListProps {
   tasks: Task[];
@@ -33,6 +35,16 @@ function getPriorityClasses(priority: TaskPriority): string {
   }
 }
 
+function formatDueDate(iso?: string | null): string | null {
+  if (!iso) return null;
+
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return format(date, "d MMMM yyyy", { locale: ru });
+  // получится "13 декабря 2025"
+}
+
 export function TaskList({
   tasks,
   onToggleTask,
@@ -42,8 +54,7 @@ export function TaskList({
   if (tasks.length === 0) {
     return (
       <div className="rounded-lg border border-dashed bg-muted/40 p-4 text-sm text-muted-foreground">
-        У вас пока нет задач. В следующих главах мы добавим форму создания
-        задач.
+        У вас пока нет задач.
       </div>
     );
   }
@@ -108,7 +119,7 @@ export function TaskList({
             )}
 
             <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-              {task.dueDate && <span>Срок: {task.dueDate}</span>}
+              {task.dueDate && <span>Срок: {formatDueDate(task.dueDate)}</span>}
               {task.isDone && (
                 <span className="text-emerald-500">Выполнено</span>
               )}

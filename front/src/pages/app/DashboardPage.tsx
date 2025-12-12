@@ -8,7 +8,6 @@ import {
   deleteTask as apiDeleteTask,
   updateTask as apiUpdateTask,
 } from "../../lib/taskApi";
-import { Button } from "../../components/ui/button";
 import {
   Card,
   CardHeader,
@@ -25,10 +24,7 @@ import {
 } from "../../components/tasks/TaskFilters";
 import { TaskCalendar } from "../../components/tasks/TaskCalendar";
 
-type ViewMode = "list" | "calendar";
-
 export default function DashboardPage() {
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [tasks, setTasks] = useState<Task[]>([]);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -147,13 +143,15 @@ export default function DashboardPage() {
       {/* Верхняя панель страницы */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-semibold tracking-tight">Мои задачи</h2>
+          <h2 className="text-xl font-semibold tracking-tight">
+            Личный кабинет
+          </h2>
           <p className="text-sm text-muted-foreground">
-            Здесь будет отображаться список задач и календарь по датам.
+            Здесь отображаются список задач и календарь по датам.
           </p>
         </div>
 
-        <div className="inline-flex items-center gap-2 rounded-full border bg-card p-1 text-xs">
+        {/* <div className="inline-flex items-center gap-2 rounded-full border bg-card p-1 text-xs">
           <Button
             type="button"
             variant={viewMode === "list" ? "primary" : "ghost"}
@@ -170,7 +168,7 @@ export default function DashboardPage() {
           >
             Календарь
           </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* Основная сетка: слева список, справа календарь/детали */}
@@ -179,10 +177,6 @@ export default function DashboardPage() {
         <Card className="min-h-[260px]">
           <CardHeader>
             <CardTitle>Список задач</CardTitle>
-            <CardDescription>
-              Сейчас задачи хранятся только на фронтенде. Позже мы подключим
-              backend и базу данных.
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {isLoading ? (
@@ -233,32 +227,17 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Правая колонка — календарь / ближайшие задачи */}
+        {/* Правая колонка — календарь */}
         <div className="space-y-4">
           <Card className="min-h-[180px]">
             <CardHeader>
-              <CardTitle>
-                {viewMode === "calendar"
-                  ? "Календарь задач"
-                  : "Ближайшие задачи"}
-              </CardTitle>
+              <CardTitle>Календарь задач</CardTitle>
               <CardDescription>
-                {viewMode === "calendar"
-                  ? "В будущем здесь будет календарь с задачами по датам."
-                  : "Здесь будут отображаться задачи с ближайшим сроком выполнения."}
+                Просматривайте свои задачи по датам в календаре.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {viewMode === "calendar" ? (
-                <div className="h-80">
-                  <TaskCalendar tasks={tasks} />
-                </div>
-              ) : (
-                <div className="rounded-lg border border-dashed bg-muted/40 p-4 text-sm text-muted-foreground">
-                  Здесь будут отображаться ближайшие задачи и напоминания (по
-                  сроку выполнения и полю/ remindAt). Пока это заглушка.
-                </div>
-              )}
+              <TaskCalendar tasks={tasks} />
             </CardContent>
           </Card>
         </div>

@@ -38,9 +38,21 @@ router.get("/", async (req: Request, res: Response) => {
 
     const tasks = await Task.find({ userId }).sort({ createdAt: -1 }).exec();
 
+    const normalized = tasks.map((t: any) => ({
+      id: t._id.toString(),
+      userId: t.userId,
+      title: t.title,
+      description: t.description ?? "",
+      dueDate: t.dueDate ? t.dueDate.toISOString() : null,
+      priority: t.priority,
+      color: t.color,
+      isDone: t.isDone,
+      remindAt: t.remindAt ? t.remindAt.toISOString() : null,
+    }));
+
     return res.json({
       success: true,
-      tasks,
+      tasks: normalized,
     });
   } catch (err) {
     console.error("Ошибка при получении задач:", err);
@@ -87,7 +99,17 @@ router.post("/", async (req: Request, res: Response) => {
 
     return res.status(201).json({
       success: true,
-      task: saved,
+      task: {
+        id: saved.id,
+        userId: saved.userId,
+        title: saved.title,
+        description: saved.description ?? "",
+        dueDate: saved.dueDate ? saved.dueDate.toISOString() : null,
+        priority: saved.priority,
+        color: saved.color,
+        isDone: saved.isDone,
+        remindAt: saved.remindAt ? saved.remindAt.toISOString() : null,
+      },
     });
   } catch (err) {
     console.error("Ошибка при создании задачи:", err);
@@ -141,7 +163,17 @@ router.put("/:id", async (req: Request, res: Response) => {
 
     return res.json({
       success: true,
-      task: updated,
+      task: {
+        id: updated.id,
+        userId: updated.userId,
+        title: updated.title,
+        description: updated.description ?? "",
+        dueDate: updated.dueDate ? updated.dueDate.toISOString() : null,
+        priority: updated.priority,
+        color: updated.color,
+        isDone: updated.isDone,
+        remindAt: updated.remindAt ? updated.remindAt.toISOString() : null,
+      },
     });
   } catch (err) {
     console.error("Ошибка при обновлении задачи:", err);
@@ -171,7 +203,17 @@ router.patch("/:id/toggle", async (req: Request, res: Response) => {
 
     return res.json({
       success: true,
-      task,
+      task: {
+        id: task.id,
+        userId: task.userId,
+        title: task.title,
+        description: task.description ?? "",
+        dueDate: task.dueDate ? task.dueDate.toISOString() : null,
+        priority: task.priority,
+        color: task.color,
+        isDone: task.isDone,
+        remindAt: task.remindAt ? task.remindAt.toISOString() : null,
+      },
     });
   } catch (err) {
     console.error("Ошибка при переключении статуса задачи:", err);
