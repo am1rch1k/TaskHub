@@ -1,8 +1,10 @@
-import express from "express";
-import type { Request, Response } from "express";
-import { Task, type ITask, type TaskPriority } from "../models/Task";
+import express, { type Request, type Response } from "express";
+import mongoose from "mongoose";
+import { Task, type TaskPriority } from "../models/Task";
 
 const router = express.Router();
+
+// --------- ВСПОМОГАТЕЛЬНЫЕ ТИПЫ ----------
 
 interface CreateTaskBody {
   userId?: string;
@@ -14,7 +16,30 @@ interface CreateTaskBody {
   remindAt?: string;
 }
 
-// Безопасное преобразование любого значения к ISO-строке даты
+interface UpdateTaskBody {
+  title?: string;
+  description?: string;
+  dueDate?: string;
+  priority?: TaskPriority;
+  color?: string;
+  isDone?: boolean;
+  remindAt?: string;
+}
+
+// То, что мы реально возвращаем на фронт
+type TaskResponse = {
+  id: string;
+  userId: string;
+  title: string;
+  description: string;
+  dueDate: string | null;
+  priority: TaskPriority;
+  color?: string;
+  isDone: boolean;
+  remindAt: string | null;
+};
+
+// Безопасное преобразование к ISO-строке
 function toIsoOrNull(value: unknown): string | null {
   if (!value) return null;
 
@@ -28,15 +53,22 @@ function toIsoOrNull(value: unknown): string | null {
   return date.toISOString();
 }
 
-interface UpdateTaskBody {
-  title?: string;
-  description?: string;
-  dueDate?: string;
-  priority?: TaskPriority;
-  color?: string;
-  isDone?: boolean;
-  remindAt?: string;
+// Маппинг mongoose-документа в TaskResponse
+function mapTask(doc: any): TaskResponse {
+  return {
+    id: doc._id.toString(),
+    userId: doc.userId?.toString?.() ?? doc.userId,
+    title: doc.title,
+    description: doc.description ?? "",
+    dueDate: toIsoOrNull(doc.dueDate),
+    priority: doc.priority,
+    color: doc.color,
+    isDone: !!doc.isDone,
+    remindAt: toIsoOrNull(doc.remindAt),
+  };
 }
+
+// --------- МАРШРУТЫ ----------
 
 // GET /api/tasks?userId=...
 router.get("/", async (req: Request, res: Response) => {
@@ -52,17 +84,7 @@ router.get("/", async (req: Request, res: Response) => {
 
     const tasks = await Task.find({ userId }).sort({ createdAt: -1 }).exec();
 
-    const normalized = tasks.map((t: any) => ({
-      id: t._id.toString(),
-      userId: t.userId,
-      title: t.title,
-      description: t.description ?? "",
-      dueDate: toIsoOrNull(t.dueDate),
-      priority: t.priority,
-      color: t.color,
-      isDone: t.isDone,
-      remindAt: toIsoOrNull(t.remindAt),
-    }));
+    const normalized: TaskResponse[] = tasks.map((t: any) => mapTask(t));
 
     return res.json({
       success: true,
@@ -113,17 +135,7 @@ router.post("/", async (req: Request, res: Response) => {
 
     return res.status(201).json({
       success: true,
-      task: {
-        id: saved._id.toString(),
-        userId: saved.userId,
-        title: saved.title,
-        description: saved.description ?? "",
-        dueDate: toIsoOrNull(saved.dueDate),
-        priority: saved.priority,
-        color: saved.color,
-        isDone: saved.isDone,
-        remindAt: toIsoOrNull(saved.remindAt),
-      },
+      task: mapTask(saved),
     });
   } catch (err) {
     console.error("Ошибка при создании задачи:", err);
@@ -140,7 +152,14 @@ router.put("/:id", async (req: Request, res: Response) => {
     const { id } = req.params;
     const body = req.body as UpdateTaskBody;
 
-    const update: Partial<ITask> = {};
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Некорректный идентификатор задачи",
+      });
+    }
+
+    const update: any = {};
 
     if (body.title !== undefined) {
       update.title = body.title.trim();
@@ -177,17 +196,7 @@ router.put("/:id", async (req: Request, res: Response) => {
 
     return res.json({
       success: true,
-      task: {
-        id: updated._id.toString(),
-        userId: updated.userId,
-        title: updated.title,
-        description: updated.description ?? "",
-        dueDate: toIsoOrNull(updated.dueDate),
-        priority: updated.priority,
-        color: updated.color,
-        isDone: updated.isDone,
-        remindAt: toIsoOrNull(updated.remindAt),
-      },
+      task: mapTask(updated),
     });
   } catch (err) {
     console.error("Ошибка при обновлении задачи:", err);
@@ -204,6 +213,14 @@ router.patch("/:id/toggle", async (req: Request, res: Response) => {
     const { id } = req.params;
     console.log("PATCH /api/tasks/:id/toggle", id);
 
+    if (!mongoose.isValidObjectId(id)) {
+      console.warn("Некорректный ObjectId при toggle:", id);
+      return res.status(400).json({
+        success: false,
+        message: "Некорректный идентификатор задачи",
+      });
+    }
+
     const task: any = await Task.findById(id).exec();
 
     if (!task) {
@@ -217,17 +234,7 @@ router.patch("/:id/toggle", async (req: Request, res: Response) => {
     task.isDone = !task.isDone;
     await task.save();
 
-    const responseTask = {
-      id: task._id.toString(),
-      userId: task.userId,
-      title: task.title,
-      description: task.description ?? "",
-      dueDate: toIsoOrNull(task.dueDate),
-      priority: task.priority,
-      color: task.color,
-      isDone: task.isDone,
-      remindAt: toIsoOrNull(task.remindAt),
-    };
+    const responseTask = mapTask(task);
 
     console.log("Успешный toggle задачи:", id, "isDone:", task.isDone);
 
@@ -248,6 +255,14 @@ router.patch("/:id/toggle", async (req: Request, res: Response) => {
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      console.warn("Некорректный ObjectId при удалении:", id);
+      return res.status(400).json({
+        success: false,
+        message: "Некорректный идентификатор задачи",
+      });
+    }
 
     const deleted = await Task.findByIdAndDelete(id).exec();
 
