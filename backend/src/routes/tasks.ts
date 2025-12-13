@@ -202,10 +202,12 @@ router.put("/:id", async (req: Request, res: Response) => {
 router.patch("/:id/toggle", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    console.log("PATCH /api/tasks/:id/toggle", id);
 
-    const task = await Task.findById(id).exec();
+    const task: any = await Task.findById(id).exec();
 
     if (!task) {
+      console.warn("Задача не найдена при toggle:", id);
       return res.status(404).json({
         success: false,
         message: "Задача не найдена",
@@ -215,19 +217,23 @@ router.patch("/:id/toggle", async (req: Request, res: Response) => {
     task.isDone = !task.isDone;
     await task.save();
 
+    const responseTask = {
+      id: task._id.toString(),
+      userId: task.userId,
+      title: task.title,
+      description: task.description ?? "",
+      dueDate: toIsoOrNull(task.dueDate),
+      priority: task.priority,
+      color: task.color,
+      isDone: task.isDone,
+      remindAt: toIsoOrNull(task.remindAt),
+    };
+
+    console.log("Успешный toggle задачи:", id, "isDone:", task.isDone);
+
     return res.json({
       success: true,
-      task: {
-        id: task._id.toString(),
-        userId: task.userId,
-        title: task.title,
-        description: task.description ?? "",
-        dueDate: toIsoOrNull(task.dueDate),
-        priority: task.priority,
-        color: task.color,
-        isDone: task.isDone,
-        remindAt: toIsoOrNull(task.remindAt),
-      },
+      task: responseTask,
     });
   } catch (err) {
     console.error("Ошибка при переключении статуса задачи:", err);
