@@ -14,10 +14,9 @@ export interface ITask {
   isDone: boolean;
   createdAt: Date;
   updatedAt: Date;
-  remindAt?: Date | null;
+  remindAt?: string | null;
 }
 
-// Mongoose-схема – без привязки к ITask, пусть TS не мешает
 const taskSchema = new Schema(
   {
     userId: {
@@ -50,7 +49,7 @@ const taskSchema = new Schema(
       default: false,
     },
     remindAt: {
-      type: Date,
+      type: String,
       default: null,
     },
   },

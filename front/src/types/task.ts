@@ -9,5 +9,5 @@ export interface Task {
   priority: TaskPriority;
   color?: string;
   isDone: boolean;
-  remindAt?: string;
+  remindAt?: string | null;
 }

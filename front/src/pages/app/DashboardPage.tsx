@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { Task } from "../../types/task";
 import type { AuthUser } from "../../types/auth";
 import {
@@ -35,6 +35,8 @@ export default function DashboardPage() {
   const [statusFilter, setStatusFilter] = useState<TaskStatusFilter>("all");
   const [priorityFilter, setPriorityFilter] =
     useState<TaskPriorityFilter>("all");
+
+  const remindersTimeoutsRef = useRef<number[]>([]);
 
   useEffect(() => {
     const raw = localStorage.getItem("taskhub_user");
@@ -138,6 +140,45 @@ export default function DashboardPage() {
     return true;
   });
 
+  // Напоминания по задачам (локальные таймеры в браузере)
+  useEffect(() => {
+    // сначала очищаем все старые таймеры
+    remindersTimeoutsRef.current.forEach((id) => {
+      window.clearTimeout(id);
+    });
+    remindersTimeoutsRef.current = [];
+
+    const now = Date.now();
+
+    tasks.forEach((task) => {
+      if (!task.remindAt) return; // нет напоминания
+      if (task.isDone) return; // выполненные не напоминаем
+
+      const ts = new Date(task.remindAt).getTime();
+      if (Number.isNaN(ts)) return;
+
+      const delay = ts - now;
+      if (delay <= 0) return; // время уже прошло
+
+      // при желании можно ограничить, напр. только напоминания в ближайшие 7 дней
+      // if (delay > 7 * 24 * 60 * 60 * 1000) return;
+
+      const timeoutId = window.setTimeout(() => {
+        alert(`Напоминание по задаче: "${task.title}"`);
+      }, delay);
+
+      remindersTimeoutsRef.current.push(timeoutId);
+    });
+
+    // на размонтирование или смену задач — тоже чистим таймеры
+    return () => {
+      remindersTimeoutsRef.current.forEach((id) => {
+        window.clearTimeout(id);
+      });
+      remindersTimeoutsRef.current = [];
+    };
+  }, [tasks]);
+
   return (
     <div className="space-y-4">
       {/* Верхняя панель страницы */}
@@ -208,6 +249,7 @@ export default function DashboardPage() {
                         description: editingTask.description ?? "",
                         dueDate: editingTask.dueDate ?? "",
                         priority: editingTask.priority,
+                        remindAt: editingTask.remindAt ?? "",
                       }}
                       submitLabel="Сохранить изменения"
                       onCancel={() => setEditingTask(null)}
