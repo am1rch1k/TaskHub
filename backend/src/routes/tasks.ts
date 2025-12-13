@@ -14,6 +14,20 @@ interface CreateTaskBody {
   remindAt?: string;
 }
 
+// Безопасное преобразование любого значения к ISO-строке даты
+function toIsoOrNull(value: unknown): string | null {
+  if (!value) return null;
+
+  const date =
+    value instanceof Date ? value : new Date(value as string | number);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date.toISOString();
+}
+
 interface UpdateTaskBody {
   title?: string;
   description?: string;
@@ -43,11 +57,11 @@ router.get("/", async (req: Request, res: Response) => {
       userId: t.userId,
       title: t.title,
       description: t.description ?? "",
-      dueDate: t.dueDate ? t.dueDate.toISOString() : null,
+      dueDate: toIsoOrNull(t.dueDate),
       priority: t.priority,
       color: t.color,
       isDone: t.isDone,
-      remindAt: t.remindAt ? t.remindAt.toISOString() : null,
+      remindAt: toIsoOrNull(t.remindAt),
     }));
 
     return res.json({
@@ -100,15 +114,15 @@ router.post("/", async (req: Request, res: Response) => {
     return res.status(201).json({
       success: true,
       task: {
-        id: saved.id,
+        id: saved._id.toString(),
         userId: saved.userId,
         title: saved.title,
         description: saved.description ?? "",
-        dueDate: saved.dueDate ? saved.dueDate.toISOString() : null,
+        dueDate: toIsoOrNull(saved.dueDate),
         priority: saved.priority,
         color: saved.color,
         isDone: saved.isDone,
-        remindAt: saved.remindAt ? saved.remindAt.toISOString() : null,
+        remindAt: toIsoOrNull(saved.remindAt),
       },
     });
   } catch (err) {
@@ -164,15 +178,15 @@ router.put("/:id", async (req: Request, res: Response) => {
     return res.json({
       success: true,
       task: {
-        id: updated.id,
+        id: updated._id.toString(),
         userId: updated.userId,
         title: updated.title,
         description: updated.description ?? "",
-        dueDate: updated.dueDate ? updated.dueDate.toISOString() : null,
+        dueDate: toIsoOrNull(updated.dueDate),
         priority: updated.priority,
         color: updated.color,
         isDone: updated.isDone,
-        remindAt: updated.remindAt ? updated.remindAt.toISOString() : null,
+        remindAt: toIsoOrNull(updated.remindAt),
       },
     });
   } catch (err) {
@@ -204,15 +218,15 @@ router.patch("/:id/toggle", async (req: Request, res: Response) => {
     return res.json({
       success: true,
       task: {
-        id: task.id,
+        id: task._id.toString(),
         userId: task.userId,
         title: task.title,
         description: task.description ?? "",
-        dueDate: task.dueDate ? task.dueDate.toISOString() : null,
+        dueDate: toIsoOrNull(task.dueDate),
         priority: task.priority,
         color: task.color,
         isDone: task.isDone,
-        remindAt: task.remindAt ? task.remindAt.toISOString() : null,
+        remindAt: toIsoOrNull(task.remindAt),
       },
     });
   } catch (err) {
