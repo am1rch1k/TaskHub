@@ -1,109 +1,73 @@
 import { api } from "./apiClient";
 import type { Task } from "../types/task";
-import type { TaskFormValues } from "../components/tasks/TaskForm";
 
-interface ApiTask {
-  _id: string;
-  userId: string;
+// 👇 маленький хелпер: вытаскиваем "data" если есть, иначе берём объект как есть
+function unwrapData<T = any>(res: unknown): T {
+  const anyRes = res as any;
+  return (anyRes && anyRes.data ? anyRes.data : anyRes) as T;
+}
+
+// Получение задач пользователя
+export async function fetchTasks(userId: string): Promise<Task[]> {
+  const res = await api.get(`/api/tasks?userId=${encodeURIComponent(userId)}`);
+
+  const data = unwrapData<{ success: boolean; tasks: Task[] }>(res);
+  return data.tasks;
+}
+
+// Создание задачи
+export interface CreateTaskPayload {
   title: string;
   description?: string;
   dueDate?: string;
-  priority: Task["priority"];
+  priority: "low" | "medium" | "high";
   color?: string;
-  isDone: boolean;
-  remindAt?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface TasksListResponse {
-  success: boolean;
-  tasks: ApiTask[];
-  message?: string;
-}
-
-interface TaskSingleResponse {
-  success: boolean;
-  task: ApiTask;
-  message?: string;
-}
-
-interface DeleteResponse {
-  success: boolean;
-  message?: string;
-}
-
-function mapApiTask(task: ApiTask): Task {
-  return {
-    id: task._id,
-    title: task.title,
-    description: task.description,
-    dueDate: task.dueDate,
-    priority: task.priority,
-    color: task.color,
-    isDone: task.isDone,
-    remindAt: task.remindAt,
-  };
-}
-
-export async function fetchTasks(userId: string): Promise<Task[]> {
-  const res = await api.get<TasksListResponse>(
-    `/api/tasks?userId=${encodeURIComponent(userId)}`
-  );
-  if (!res.success) {
-    throw new Error(res.message ?? "Не удалось получить задачи");
-  }
-  return res.tasks.map(mapApiTask);
+  remindAt?: string | null;
 }
 
 export async function createTask(
   userId: string,
-  values: TaskFormValues
+  values: CreateTaskPayload
 ): Promise<Task> {
-  const res = await api.post<TaskSingleResponse>("/api/tasks", {
+  const res = await api.post("/api/tasks", {
     userId,
-    title: values.title,
-    description: values.description || undefined,
-    dueDate: values.dueDate || undefined,
-    priority: values.priority,
+    ...values,
   });
 
-  if (!res.success) {
-    throw new Error(res.message ?? "Не удалось создать задачу");
-  }
-
-  return mapApiTask(res.task);
+  const data = unwrapData<{ success: boolean; task: Task }>(res);
+  return data.task;
 }
 
-export async function toggleTask(id: string): Promise<Task> {
-  const res = await api.patch<TaskSingleResponse>(`/api/tasks/${id}/toggle`);
-  if (!res.success) {
-    throw new Error(res.message ?? "Не удалось изменить статус задачи");
-  }
-  return mapApiTask(res.task);
-}
-
-export async function deleteTask(id: string): Promise<void> {
-  const res = await api.delete<DeleteResponse>(`/api/tasks/${id}`);
-  if (!res.success) {
-    throw new Error(res.message ?? "Не удалось удалить задачу");
-  }
+// Обновление задачи
+export interface UpdateTaskPayload {
+  title?: string;
+  description?: string;
+  dueDate?: string;
+  priority?: "low" | "medium" | "high";
+  color?: string;
+  isDone?: boolean;
+  remindAt?: string | null;
 }
 
 export async function updateTask(
   id: string,
-  values: TaskFormValues
+  values: UpdateTaskPayload
 ): Promise<Task> {
-  const res = await api.put<TaskSingleResponse>(`/api/tasks/${id}`, {
-    title: values.title,
-    description: values.description || undefined,
-    dueDate: values.dueDate || undefined,
-    priority: values.priority,
-  });
+  const res = await api.put(`/api/tasks/${id}`, values);
+  const data = unwrapData<{ success: boolean; task: Task }>(res);
+  return data.task;
+}
 
-  if (!res.success) {
-    throw new Error(res.message ?? "Не удалось обновить задачу");
-  }
+// Переключение статуса (выполнена/не выполнена)
+export async function toggleTask(id: string): Promise<Task> {
+  const res = await api.patch(`/api/tasks/${id}/toggle`);
+  const data = unwrapData<{ success: boolean; task: Task }>(res);
+  return data.task;
+}
 
-  return mapApiTask(res.task);
+// Удаление задачи
+export async function deleteTask(id: string): Promise<void> {
+  const res = await api.delete(`/api/tasks/${id}`);
+  // на всякий случай читаем ответ, но ничего не возвращаем
+  unwrapData<{ success: boolean; message: string }>(res);
 }
