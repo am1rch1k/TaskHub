@@ -95,7 +95,7 @@ export function TaskForm({
           name="title"
           value={values.title}
           onChange={handleChange}
-          placeholder="Например, «Купить продукты»"
+          placeholder="Например, «Сдать курсовую на максимальный балл»"
           required
         />
       </div>

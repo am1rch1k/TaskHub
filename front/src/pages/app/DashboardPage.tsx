@@ -68,17 +68,14 @@ export default function DashboardPage() {
   }, []);
 
   function handleToggleTask(id: string) {
-    // оптимистично сразу меняем на фронте
     setTasks((prev) =>
       prev.map((task) =>
         task.id === id ? { ...task, isDone: !task.isDone } : task
       )
     );
 
-    // и отправляем запрос на бэк
     toggleTask(id).catch((err) => {
       console.error(err);
-      // если ошибка — откатываем
       setTasks((prev) =>
         prev.map((task) =>
           task.id === id ? { ...task, isDone: !task.isDone } : task
@@ -93,7 +90,6 @@ export default function DashboardPage() {
 
     apiDeleteTask(id).catch((err) => {
       console.error(err);
-      // откат, если ошибка
       setTasks(prevTasks);
     });
   }

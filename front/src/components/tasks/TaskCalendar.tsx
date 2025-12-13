@@ -133,7 +133,7 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({ tasks }) => {
   return (
     <div className="flex flex-col gap-3 text-xs sm:text-sm">
       {/* Блок с календарём */}
-      <div className="h-85 rounded-md border bg-background p-2 task-calendar">
+      <div className="h-100 rounded-md border bg-background p-2 task-calendar">
         <Calendar
           localizer={localizer}
           events={events}
