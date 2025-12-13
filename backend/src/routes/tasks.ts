@@ -33,7 +33,7 @@ type TaskResponse = {
   priority: TaskPriority;
   color?: string;
   isDone: boolean;
-  remindAt: string | null; // 👈 строка или null
+  remindAt: string | null;
 };
 
 // Безопасное преобразование к ISO-строке (для dueDate)
@@ -57,17 +57,15 @@ function mapTask(doc: any): TaskResponse {
     userId: doc.userId?.toString?.() ?? doc.userId,
     title: doc.title,
     description: doc.description ?? "",
-    // Срок храним как Date → отдаём ISO (фронт форматирует красиво)
     dueDate: toIsoOrNull(doc.dueDate),
     priority: doc.priority,
     color: doc.color,
     isDone: !!doc.isDone,
-    // ⚠️ ВАЖНО: remindAt отдаём как строку или null, БЕЗ toISOString
     remindAt: doc.remindAt ?? null,
   };
 }
 
-// --------- МАРШРУТЫ ----------
+// МАРШРУТЫ
 
 // GET /api/tasks?userId=...
 router.get("/", async (req: Request, res: Response) => {
@@ -123,11 +121,9 @@ router.post("/", async (req: Request, res: Response) => {
       userId,
       title: title.trim(),
       description: description?.trim() || undefined,
-      // срок можно хранить как Date
       dueDate: dueDate ? new Date(dueDate) : undefined,
       priority: priority || "medium",
       color,
-      // 👇 напоминание храним как строку "YYYY-MM-DDTHH:mm" или null
       remindAt: remindAt?.trim() || null,
       isDone: false,
     });
@@ -181,7 +177,6 @@ router.put("/:id", async (req: Request, res: Response) => {
       update.isDone = body.isDone;
     }
     if (body.remindAt !== undefined) {
-      // 👇 снова строка "YYYY-MM-DDTHH:mm" или null
       update.remindAt = body.remindAt?.trim() || null;
     }
 

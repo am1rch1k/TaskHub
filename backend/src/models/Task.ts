@@ -2,9 +2,8 @@ import { Schema, model } from "mongoose";
 
 export type TaskPriority = "low" | "medium" | "high";
 
-// Это наш интерфейс для кода / фронта, НЕ mongoose Document
 export interface ITask {
-  _id: string; // строковый id, удобно для фронта
+  _id: string; // строковый id
   userId: string;
   title: string;
   description?: string;
