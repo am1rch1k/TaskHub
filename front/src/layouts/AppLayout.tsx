@@ -25,12 +25,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     <div className="min-h-screen flex bg-background text-foreground">
       <div className="flex-1 flex flex-col">
         <header className="flex items-center justify-between border-b px-4 py-3">
-          <div>
-            <h1 className="text-lg font-semibold tracking-tight">TaskHub</h1>
-            {/* <p className="text-xs text-muted-foreground">
-              Здесь вы будете управлять задачами и календарём.
-            </p> */}
-          </div>
+          <h1 className="text-lg font-semibold tracking-tight">TaskHub</h1>
 
           <div className="flex items-center gap-3">
             <div className="text-xs text-muted-foreground">

@@ -184,7 +184,7 @@ export default function DashboardPage() {
             Личный кабинет
           </h2>
           <p className="text-sm text-muted-foreground">
-            Здесь отображаются список задач и календарь по датам.
+            Здесь отображаются список задач и календарь.
           </p>
         </div>
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { FormEvent, ChangeEvent } from "react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { DatePicker } from "../ui/date-picker";
 
 export type TaskPriority = "low" | "medium" | "high";
 
@@ -28,7 +29,7 @@ function normalizeDate(value?: string): string {
   return value;
 }
 
-// помощник для datetime-local (нужен формат YYYY-MM-DDTHH:mm)
+// помощник для datetime (нужен формат YYYY-MM-DDTHH:mm)
 function normalizeDateTime(value?: string): string {
   if (!value) return "";
   const d = new Date(value);
@@ -87,19 +88,24 @@ export function TaskForm({
     }
   }
 
+  // для напоминаний удобнее сразу распарсить дату и время
+  const [remindDatePart, remindTimePart] = (values.remindAt ?? "").split("T");
+
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
+      {/* Название */}
       <div className="space-y-1">
         <label className="text-xs font-medium">Название</label>
         <Input
           name="title"
           value={values.title}
           onChange={handleChange}
-          placeholder="Например, «Сдать курсовую на максимальный балл»"
+          placeholder="Например, «Купить продукты»"
           required
         />
       </div>
 
+      {/* Описание */}
       <div className="space-y-1">
         <label className="text-xs font-medium">Описание</label>
         <textarea
@@ -112,15 +118,21 @@ export function TaskForm({
         />
       </div>
 
+      {/* Срок + приоритет */}
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1">
           <label className="text-xs font-medium">Срок выполнения</label>
-          <Input
-            name="dueDate"
-            type="date"
-            value={values.dueDate}
-            onChange={handleChange}
-          />
+          <div className="mt-1 pl-1">
+            <DatePicker
+              value={values.dueDate || null}
+              onChange={(newValue) =>
+                setValues((prev) => ({
+                  ...prev,
+                  dueDate: newValue ?? "",
+                }))
+              }
+            />
+          </div>
         </div>
 
         <div className="space-y-1">
@@ -138,20 +150,53 @@ export function TaskForm({
         </div>
       </div>
 
+      {/* Напоминание: дата + время */}
       <div className="space-y-1">
         <label className="text-xs font-medium">Напомнить в</label>
-        <Input
-          name="remindAt"
-          type="datetime-local"
-          value={values.remindAt ?? ""}
-          onChange={handleChange}
-        />
+        <div className="mt-1 flex gap-2">
+          {/* Дата напоминания – тот же календарь, чуть сдвинут вправо */}
+          <div className="flex-1 pl-1">
+            <DatePicker
+              value={remindDatePart || null}
+              onChange={(newDate) => {
+                const currentTime = remindTimePart ?? "";
+                const next =
+                  newDate && currentTime
+                    ? `${newDate}T${currentTime}`
+                    : newDate || "";
+                setValues((prev) => ({
+                  ...prev,
+                  remindAt: next,
+                }));
+              }}
+              placeholder="Дата"
+            />
+          </div>
+
+          {/* Время напоминания */}
+          <Input
+            type="time"
+            value={remindTimePart ?? ""}
+            onChange={(e) => {
+              const t = e.target.value;
+              const currentDate = remindDatePart || "";
+              const next =
+                currentDate && t ? `${currentDate}T${t}` : currentDate || "";
+              setValues((prev) => ({
+                ...prev,
+                remindAt: next,
+              }));
+            }}
+            className="w-[120px]"
+          />
+        </div>
         <p className="text-[11px] text-muted-foreground">
-          Время, когда приложение напомнит вам об этой задаче (локально, через
-          всплывающее сообщение).
+          Дата и время, когда приложение напомнит вам об этой задаче (локально,
+          через всплывающее сообщение).
         </p>
       </div>
 
+      {/* Кнопки */}
       <div className="flex items-center gap-2 pt-1">
         <Button type="submit" className="h-8 px-3 text-xs">
           {submitLabel}
