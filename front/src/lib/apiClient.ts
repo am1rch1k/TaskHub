@@ -1,5 +1,5 @@
 const API_URL =
-  import.meta.env.VITE_API_URL ?? "http://https://taskhub-back-end.vercel.app/";
+  (import.meta.env.VITE_API_URL ?? "https://taskhub-back-end.vercel.app").replace(/\/+$/, "");
 
 interface ErrorResponse {
   message?: string;

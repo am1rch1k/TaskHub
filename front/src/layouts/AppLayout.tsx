@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { authActionStyle } from "../components/auth/authActionStyle";
 import { getStoredUser } from "../lib/authStorage";
 
 interface AppLayoutProps {
@@ -21,11 +22,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 Пользователь: <span className="font-medium">{user.username}</span>
               </div>
             ) : (
-              <nav className="flex items-center gap-3 text-sm" aria-label="Авторизация">
-                <Link to="/login" className="font-medium text-foreground hover:underline">
+              <nav className="flex items-center gap-2" aria-label="Авторизация">
+                <Link to="/login" className={authActionStyle}>
                   Войти
                 </Link>
-                <Link to="/register" className="rounded-md bg-primary px-3 py-2 font-medium text-primary-foreground hover:bg-primary/90">
+                <Link to="/register" className={authActionStyle}>
                   Регистрация
                 </Link>
               </nav>

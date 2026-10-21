@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
+import { authActionStyle } from "../../components/auth/authActionStyle";
 import type { Task } from "../../types/task";
 import { getStoredUser } from "../../lib/authStorage";
 import {
@@ -206,11 +207,11 @@ export default function DashboardPage() {
               Войдите или создайте аккаунт, чтобы пользоваться дашбордом.
             </p>
           </div>
-          <div className="flex shrink-0 gap-2 text-sm">
-            <Link to="/login" className="rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground hover:bg-primary/90">
+          <div className="flex flex-wrap gap-2">
+            <Link to="/login" className={authActionStyle}>
               Войти
             </Link>
-            <Link to="/register" className="rounded-md border px-4 py-2 font-medium text-foreground hover:bg-accent">
+            <Link to="/register" className={authActionStyle}>
               Создать аккаунт
             </Link>
           </div>

@@ -34,8 +34,8 @@ export default function RegisterPage() {
         return;
       }
 
-      // Можно сразу логинить, но для простоты отправим на /login
-      navigate("/login");
+      localStorage.setItem("taskhub_user", JSON.stringify(response.user));
+      navigate("/", { replace: true });
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Ошибка при обращении к серверу"
