@@ -12,8 +12,14 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* корень перенаправляем на /login пока нет авторизации */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route
+          path="/"
+          element={
+            <AppLayout>
+              <DashboardPage />
+            </AppLayout>
+          }
+        />
 
         {/* Страницы авторизации */}
         <Route
@@ -34,15 +40,8 @@ function App() {
           }
         />
 
-        {/* Личный кабинет / основное приложение */}
-        <Route
-          path="/app"
-          element={
-            <AppLayout>
-              <DashboardPage />
-            </AppLayout>
-          }
-        />
+        {/* Сохраняем старые ссылки на дашборд */}
+        <Route path="/app" element={<Navigate to="/" replace />} />
 
         {/* 404 */}
         <Route

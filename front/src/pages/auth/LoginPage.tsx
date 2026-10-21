@@ -34,7 +34,7 @@ export default function LoginPage() {
       // сохраняем пользователя во фронте
       localStorage.setItem("taskhub_user", JSON.stringify(response.user));
 
-      navigate("/app");
+      navigate("/", { replace: true });
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Ошибка при обращении к серверу"

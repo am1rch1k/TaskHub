@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import type { Task } from "../../types/task";
-import type { AuthUser } from "../../types/auth";
+import { getStoredUser } from "../../lib/authStorage";
 import {
   fetchTasks,
   createTask,
@@ -26,8 +27,8 @@ import { TaskCalendar } from "../../components/tasks/TaskCalendar";
 
 export default function DashboardPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user] = useState(getStoredUser);
+  const [isLoading, setIsLoading] = useState(Boolean(user));
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -39,33 +40,20 @@ export default function DashboardPage() {
   const remindersTimeoutsRef = useRef<number[]>([]);
 
   useEffect(() => {
-    const raw = localStorage.getItem("taskhub_user");
-    if (!raw) {
-      setIsLoading(false);
-      setLoadError("Пользователь не найден. Пожалуйста, войдите заново.");
-      return;
-    }
+    if (!user) return;
 
-    try {
-      const parsed = JSON.parse(raw) as AuthUser;
-      setUser(parsed);
-
-      fetchTasks(parsed.id)
-        .then((fetched) => {
-          setTasks(fetched);
-          setIsLoading(false);
-        })
-        .catch((err) => {
-          setLoadError(
-            err instanceof Error ? err.message : "Ошибка при загрузке задач"
-          );
-          setIsLoading(false);
-        });
-    } catch {
-      setIsLoading(false);
-      setLoadError("Ошибка чтения данных пользователя");
-    }
-  }, []);
+    fetchTasks(user.id)
+      .then((fetched) => {
+        setTasks(fetched);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        setLoadError(
+          err instanceof Error ? err.message : "Ошибка при загрузке задач"
+        );
+        setIsLoading(false);
+      });
+  }, [user]);
 
   function handleToggleTask(id: string) {
     setTasks((prev) =>
@@ -181,10 +169,12 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-xl font-semibold tracking-tight">
-            Личный кабинет
+            Дашборд
           </h2>
           <p className="text-sm text-muted-foreground">
-            Здесь отображаются список задач и календарь.
+            {user
+              ? "Здесь отображаются список задач и календарь."
+              : "После входа здесь появятся ваши задачи и календарь."}
           </p>
         </div>
 
@@ -208,6 +198,25 @@ export default function DashboardPage() {
         </div> */}
       </div>
 
+      {!user && (
+        <div className="flex flex-col gap-3 rounded-xl border bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="font-semibold">Начните планировать задачи</h3>
+            <p className="text-sm text-muted-foreground">
+              Войдите или создайте аккаунт, чтобы пользоваться дашбордом.
+            </p>
+          </div>
+          <div className="flex shrink-0 gap-2 text-sm">
+            <Link to="/login" className="rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground hover:bg-primary/90">
+              Войти
+            </Link>
+            <Link to="/register" className="rounded-md border px-4 py-2 font-medium text-foreground hover:bg-accent">
+              Создать аккаунт
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Основная сетка: слева список, справа календарь/детали */}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)]">
         {/* Левая колонка — список задач */}
@@ -216,7 +225,11 @@ export default function DashboardPage() {
             <CardTitle>Список задач</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {isLoading ? (
+            {!user ? (
+              <div className="flex min-h-48 items-center justify-center rounded-lg border border-dashed bg-muted/30 p-6 text-center text-sm text-muted-foreground">
+                Войдите, чтобы увидеть свои задачи и добавить новую.
+              </div>
+            ) : isLoading ? (
               <p className="text-sm text-muted-foreground">Загрузка задач...</p>
             ) : loadError ? (
               <p className="text-sm text-red-500">{loadError}</p>
@@ -275,7 +288,20 @@ export default function DashboardPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <TaskCalendar tasks={tasks} />
+              {user ? (
+                <TaskCalendar tasks={tasks} />
+              ) : (
+                <div className="relative">
+                  <div inert aria-hidden="true" className="pointer-events-none select-none opacity-40">
+                    <TaskCalendar tasks={[]} />
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <p className="rounded-lg border bg-card px-4 py-2 text-center text-sm font-medium shadow-sm">
+                      Календарь доступен после входа
+                    </p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

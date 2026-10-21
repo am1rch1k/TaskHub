@@ -1,7 +1,6 @@
 import { api } from "./apiClient";
 import type { Task } from "../types/task";
 
-// 👇 маленький хелпер: вытаскиваем "data" если есть, иначе берём объект как есть
 function unwrapData<T = any>(res: unknown): T {
   const anyRes = res as any;
   return (anyRes && anyRes.data ? anyRes.data : anyRes) as T;
