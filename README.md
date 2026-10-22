@@ -4,7 +4,7 @@
 
 **Удобное пространство для планирования задач и отслеживания их выполнения.**
 
-[**Открыть приложение ↗**](https://tasks-hub.vercel.app/login) · [**Исходный код**](https://github.com/am1rch1k/TaskHub)
+[**Открыть приложение ↗**](https://tasks-hub.vercel.app) · [**Исходный код**](https://github.com/am1rch1k/TaskHub)
 
 ![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
